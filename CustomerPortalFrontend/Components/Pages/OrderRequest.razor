@@ -1,0 +1,65 @@
+﻿@page "/order-request"
+@rendermode InteractiveServer
+@inject IHttpClientFactory ClientFactory
+@inject NavigationManager NavigationManager
+@inject ILogger<OrderRequest> Logger
+@using Models
+@using System.Text.Json
+
+<PageTitle>Order Request</PageTitle>
+
+<h1>Order Request</h1>
+
+<EditForm Model="@order" OnValidSubmit="SubmitOrder">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+
+    <div class="form-group">
+        <label for="orderId">Order ID</label>
+        <InputNumber id="orderId" class="form-control" @bind-Value="order.OrderId" />
+    </div>
+
+    <div class="form-group">
+        <label for="orderDate">Order Date</label>
+        <InputDate id="orderDate" class="form-control" @bind-Value="order.OrderDate" />
+    </div>
+
+    <div class="form-group">
+        <label for="orderStatus">Order Status</label>
+        <InputText id="orderStatus" class="form-control" @bind-Value="order.OrderStatus" />
+    </div>
+
+    <button type="submit" class="btn btn-primary">Submit Order</button>
+</EditForm>
+
+@if (!string.IsNullOrEmpty(errorMessage))
+{
+    <div class="alert alert-danger" role="alert">
+        @errorMessage
+    </div>
+}
+
+@code {
+    private Order order = new Order() { OrderDate = DateTime.Now, OrderStatus = "Pending" };
+    private string errorMessage = String.Empty;
+
+    private async void SubmitOrder()
+    {
+        var client = ClientFactory.CreateClient("OrderService");
+        
+        try {
+            var response = await client.PostAsync("/api/v1/order", new StringContent(JsonSerializer.Serialize(order), System.Text.Encoding.UTF8, "application/json"));
+        
+            if (response.IsSuccessStatusCode)
+            {
+                order = new Order() { OrderDate = DateTime.Now, OrderStatus = "Pending" };
+                NavigationManager.NavigateTo("/order-request", forceLoad: true);
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMessage = ex.Message;
+            Logger.LogError(ex, "Error submitting order");
+        }
+    }
+}

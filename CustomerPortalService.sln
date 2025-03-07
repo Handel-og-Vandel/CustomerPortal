@@ -1,0 +1,28 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31903.59
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CustomerPortalFrontend", "CustomerPortalFrontend\CustomerPortalFrontend.csproj", "{A705FAC6-2902-4F00-B72E-8B2937DDDE4D}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CustomerPortal.Test", "CustomerPortal.Test\CustomerPortalTest.csproj", "{5DD632C6-162E-4FDB-990B-0F345E033412}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{A705FAC6-2902-4F00-B72E-8B2937DDDE4D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A705FAC6-2902-4F00-B72E-8B2937DDDE4D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A705FAC6-2902-4F00-B72E-8B2937DDDE4D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A705FAC6-2902-4F00-B72E-8B2937DDDE4D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5DD632C6-162E-4FDB-990B-0F345E033412}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5DD632C6-162E-4FDB-990B-0F345E033412}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5DD632C6-162E-4FDB-990B-0F345E033412}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5DD632C6-162E-4FDB-990B-0F345E033412}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal

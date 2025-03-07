@@ -1,0 +1,23 @@
+
+services:
+  customerportal:
+    image: customerportalfrontend
+    container_name: customerportal
+    build:
+      context: .
+      dockerfile: CustomerPortalFrontend/Dockerfile
+    environment:
+      - OrderServiceUrl=http://orderservicemock:8000/api/orders
+    ports:
+      - 5001:5001
+    depends_on:
+      - orderservicemock
+  
+  orderservicemock:
+    image: alpine:latest
+    container_name: orderservicemock
+    command: ["sh", "-c", 
+        "while true; do (echo -e 'HTTP/1.1 200 OK\r\nContent-Length: 0\r\nConnection: keep-alive\r\n\r\n' ) \
+        | nc -lp 8000 -k; echo -e '\r\n'; done" ]
+    ports:
+      - "8080:8000"
