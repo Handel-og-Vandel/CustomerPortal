@@ -1,4 +1,5 @@
-﻿@page "/order-request"
+@page "/order-request"
+
 @rendermode InteractiveServer
 @inject IHttpClientFactory ClientFactory
 @inject NavigationManager NavigationManager
@@ -6,30 +7,101 @@
 @using Models
 @using System.Text.Json
 
-<PageTitle>Order Request</PageTitle>
 
-<h1>Order Request</h1>
+@using System.ComponentModel.DataAnnotations
+@using System.Collections.Generic
+@using System;
 
-<EditForm Model="@order" OnValidSubmit="SubmitOrder">
+<h3>Create Order</h3>
+
+<EditForm Model="@order" OnValidSubmit="@HandleValidSubmitAsync">
     <DataAnnotationsValidator />
     <ValidationSummary />
 
     <div class="form-group">
-        <label for="orderId">Order ID</label>
-        <InputNumber id="orderId" class="form-control" @bind-Value="order.OrderId" />
+        <GuidInput @bind-Value="order.OrderId" Label="Order ID:" />
     </div>
 
     <div class="form-group">
-        <label for="orderDate">Order Date</label>
-        <InputDate id="orderDate" class="form-control" @bind-Value="order.OrderDate" />
+        <GuidInput @bind-Value="order.CustomerId" Label="Customer ID:" />
     </div>
 
     <div class="form-group">
-        <label for="orderStatus">Order Status</label>
-        <InputText id="orderStatus" class="form-control" @bind-Value="order.OrderStatus" />
+        <label>Order Date:</label>
+        <InputDate @bind-Value="order.OrderDate" class="form-control" />
     </div>
 
-    <button type="submit" class="btn btn-primary">Submit Order</button>
+    <h4>Items</h4>
+    <div class="form-group">
+        <button type="button" class="btn btn-primary" @onclick="AddItem">Add Item</button>
+
+        @foreach (var item in order.Items)
+        {
+            <div style="border: 1px solid #ccc; padding: 10px; margin-top: 10px;">
+                <div class="form-group">
+                    <GuidInput @bind-Value="item.ProductId" Label="Product ID:" />
+                </div>
+                <div class="form-group">
+                    <label>Quantity:</label>
+                    <InputNumber @bind-Value="item.Quantity" class="form-control"  @oninput="() => CalculateTotal()" />
+                </div>
+                <div class="form-group">
+                    <label>Price:</label>
+                    <InputNumber @bind-Value="item.Price" class="form-control" @oninput="() => CalculateTotal()" />
+                </div>
+                <button type="button" class="btn btn-danger" @onclick="() => RemoveItem(item)">Remove Item</button>
+            </div>
+
+        }
+        <div class="form-group">
+            <label>Total Amount:</label>
+            <InputNumber @bind-Value="order.TotalAmount" class="form-control" disabled/>
+        </div>
+    </div>
+
+    <h4>Shipping Address</h4>
+    <div class="form-group">
+        <label>Street:</label>
+        <InputText @bind-Value="order.ShippingAddress.Street" class="form-control" />
+    </div>
+    <div class="form-group">
+        <label>City:</label>
+        <InputText @bind-Value="order.ShippingAddress.City" class="form-control" />
+    </div>
+    <div class="form-group">
+        <label>State:</label>
+        <InputText @bind-Value="order.ShippingAddress.State" class="form-control" />
+    </div>
+    <div class="form-group">
+        <label>PostalCode Code:</label>
+        <InputText @bind-Value="order.ShippingAddress.PostalCode" class="form-control" />
+    </div>
+    <div class="form-group">
+        <label>Country:</label>
+        <InputText @bind-Value="order.ShippingAddress.Country" class="form-control" />
+    </div>
+
+    <div class="form-group">
+        <label>Payment Method:</label>
+        <InputSelect @bind-Value="order.PaymentMethod" class="form-control">
+            @foreach (var method in Enum.GetValues(typeof(PaymentMethod)))
+            {
+                <option value="@method">@method</option>
+            }
+        </InputSelect>
+    </div>
+
+    <div class="form-group">
+        <label>Order Status:</label>
+        <InputSelect @bind-Value="order.OrderStatus" class="form-control">
+            @foreach (var status in Enum.GetValues(typeof(OrderStatus)))
+            {
+                <option value="@status">@status</option>
+            }
+        </InputSelect>
+    </div>
+
+    <button type="submit" class="btn btn-primary">Submit</button>
 </EditForm>
 
 @if (!string.IsNullOrEmpty(errorMessage))
@@ -40,26 +112,89 @@
 }
 
 @code {
-    private Order order = new Order() { OrderDate = DateTime.Now, OrderStatus = "Pending" };
+    private Order order = new Order()
+        {
+            OrderId = Guid.NewGuid(),
+            OrderDate = DateTime.Now,
+            Items = new List<OrderItem>(),
+            ShippingAddress = new Address()
+            {
+                Street = "",
+                City = "",
+                PostalCode = "8260",
+                Country = "Denmark"
+            }
+        };
+
     private string errorMessage = String.Empty;
 
-    private async void SubmitOrder()
+    protected override void OnInitialized()
     {
+        ClearFormOrder();
+    }
+
+    private async Task HandleValidSubmitAsync()
+    {
+        // Handle form submission (e.g., send data to API)
+        Logger.LogInformation("Valid Submit");
+
+        var order_body = JsonSerializer.Serialize(order);
+        Logger.LogInformation(order_body); //output to logs.
+
         var client = ClientFactory.CreateClient("OrderService");
-        
-        try {
-            var response = await client.PostAsync("/api/v1/order", new StringContent(JsonSerializer.Serialize(order), System.Text.Encoding.UTF8, "application/json"));
-        
+
+        try
+        {
+            var response = await client.PostAsync("/api/order", new StringContent(order_body, System.Text.Encoding.UTF8,
+            "application/json"));
+
             if (response.IsSuccessStatusCode)
             {
-                order = new Order() { OrderDate = DateTime.Now, OrderStatus = "Pending" };
+                ClearFormOrder();
+                errorMessage = String.Empty;
                 NavigationManager.NavigateTo("/order-request", forceLoad: true);
             }
         }
         catch (Exception ex)
         {
-            errorMessage = ex.Message;
+            errorMessage = "Error submitting order: " + ex.Message;
             Logger.LogError(ex, "Error submitting order");
         }
+    }
+
+    private void ClearFormOrder()
+    {
+        order = new Order()
+        {
+            OrderId = Guid.NewGuid(),
+            OrderDate = DateTime.Now,
+            Items = new List<OrderItem>(),
+            ShippingAddress = new Address()
+            {
+                Street = "",
+                City = "",
+                PostalCode = "8260",
+                Country = "Denmark"
+            }
+        };
+    }
+
+    private async Task AddItem()
+    {
+        order.Items.Add(new OrderItem() { ProductId = Guid.NewGuid() });
+        await CalculateTotal();
+    }
+
+    private async Task RemoveItem(OrderItem item)
+    {
+        if (order.Items != null && order.Items.Contains(item))
+            order.Items.Remove(item);
+        await CalculateTotal();
+    }
+
+    private async Task CalculateTotal()
+    {
+        await Task.Delay(400);
+        order.TotalAmount = order.Items.Sum(item => item.Quantity * item.Price);
     }
 }

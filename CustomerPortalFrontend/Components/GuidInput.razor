@@ -1,0 +1,47 @@
+@using System;
+@using Microsoft.AspNetCore.Components;
+@using Microsoft.AspNetCore.Components.Forms;
+
+<div class="form-group">
+    <label>@Label</label>
+    <InputText @bind-Value="GuidAsString" class="form-control" />
+    <ValidationMessage For="@ValueExpression" />
+</div>
+
+@code {
+    [Parameter]
+    public required Guid Value { get; set; }
+
+    [Parameter]
+    public EventCallback<Guid> ValueChanged { get; set; }
+
+    [Parameter]
+    public string Label { get; set; } = "Guid";
+
+    [Parameter]
+    public required System.Linq.Expressions.Expression<Func<Guid>> ValueExpression { get; set; }
+
+    private string GuidAsString
+    {
+        get => Value.ToString();
+        set
+        {
+            if (Guid.TryParse(value, out Guid parsedGuid))
+            {
+                if (parsedGuid != Value)
+                {
+                    Value = parsedGuid;
+                    ValueChanged.InvokeAsync(Value);
+                }
+            }
+            else if (string.IsNullOrEmpty(value))
+            {
+              if (Value != Guid.Empty){
+                Value = Guid.Empty;
+                ValueChanged.InvokeAsync(Value);
+              }
+
+            }
+        }
+    }
+}

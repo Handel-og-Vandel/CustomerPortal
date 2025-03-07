@@ -4,7 +4,7 @@ services:
     image: customerportalfrontend
     container_name: customerportal
     build:
-      context: .
+      context: ../
       dockerfile: CustomerPortalFrontend/Dockerfile
     environment:
       - OrderServiceUrl=http://orderservicemock:8000/api/orders
